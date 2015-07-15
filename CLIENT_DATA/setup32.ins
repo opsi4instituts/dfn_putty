@@ -1,0 +1,117 @@
+; Copyright (c) uib gmbh (www.uib.de)
+; This sourcecode is owned by uib
+; and published under the Terms of the General Public License.
+; credits: http://www.opsi.org/en/credits/
+
+[Actions]
+requiredWinstVersion >= "4.11.3.6"
+
+DefVar $MsiId$
+DefVar $UninstallProgram$
+DefVar $LogDir$
+DefVar $ProductId$  
+DefVar $MinimumSpace$
+DefVar $InstallDir$
+DefVar $ExitCode$
+
+Set $LogDir$ = "%SystemDrive%\tmp"
+
+Set $ProductId$       = "putty"
+Set $MinimumSpace$    = "10 MB"
+Set $InstallDir$      = "%ProgramFiles32Dir%\Putty"
+
+if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
+	LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
+	isFatalError "No Space"
+	; Stop process and set installation status to failed
+else
+	comment "Show product picture"
+	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+	
+	if FileExists("%ScriptPath%\delsub32.ins")
+		comment "Start uninstall sub section"
+		Sub "%ScriptPath%\delsub32.ins"
+	endif
+	
+	Message "Installing " + $ProductId$ + " ..."
+	
+	comment "Start setup program"
+	ChangeDirectory "%SCRIPTPATH%"
+	Winbatch_install_putty
+	comment "Patch Registry"
+	Registry_putty /sysnative /AllNTUserDats
+
+	Sub_check_exitcode
+	
+	comment "Copy files"
+	;Files_Copy_kitty
+		
+	comment "Create shortcuts"
+	;LinkFolder_install
+	
+endif
+
+[Winbatch_install_putty]
+"%SCRIPTPATH%\putty-0.64-installer.exe" /sp- /verysilent /norestart /nocancel /SUPPRESSMSGBOXES
+
+[Files_Copy_kitty]
+copy -V "%SCRIPTPATH%\kitty.exe" "%Programfiles32Dir%\kitty"
+
+[LinkFolder_install]
+set_basefolder common_programs
+set_subfolder "kitty"
+set_link
+  name: "kitty"
+  target: "%Programfiles32Dir%\kitty\kitty.exe"
+end_link
+
+
+[Registry_putty]
+;http://www.chiark.greenend.org.uk/~sgtatham/putty/faq.html
+;Chapter 4: Configuring PuTTY
+;http://the.earth.li/~sgtatham/putty/0.58/htmldoc/Chapter4.html
+;HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\Default%20Settings
+
+openkey [HKCU\Software\SimonTatham\PuTTY\Sessions\Default%20Settings]
+set "LineCodePage"="UTF-8"
+set "UTF8Override"=REG_DWORD:0001
+
+[Sub_check_exitcode]
+comment "Check exit code"
+set $ExitCode$ = getLastExitCode
+if ($ExitCode$ = "0")
+	comment "ExitCode = "+$ExitCode$+" Setup was successfully run to completion."
+else
+	if ($ExitCode$ = "1")
+		logError "ExitCode = "+$ExitCode$+" Setup failed to initialize."
+		isFatalError " Setup failed to initialize."
+	else
+		if ($ExitCode$ = "2")
+			logError "ExitCode = "+$ExitCode$+" The user clicked Cancel in the wizard before the actual installation started, or chose 'No' on the opening 'This will install...' message box."
+			isFatalError "user canceled"
+		else
+			if ($ExitCode$ = "3")
+				logError "ExitCode = "+$ExitCode$+" A fatal error occurred while preparing to move to the next installation phase (for example, from displaying the pre-installation wizard pages to the actual installation process). This should never happen except under the most unusual of circumstances, such as running out of memory or Windows resources."
+				isFatalError "Setup failed"
+			else
+				if ($ExitCode$ = "4")
+					logError "ExitCode = "+$ExitCode$+" A fatal error occurred during the actual installation process."
+					isFatalError "Setup failed"
+				else
+					if ($ExitCode$ = "5")
+						logError "ExitCode = "+$ExitCode$+" The user clicked Cancel during the actual installation process, or chose Abort at an Abort-Retry-Ignore box."
+						isFatalError "user canceled"
+					else
+						if ($ExitCode$ = "6")
+							logError "ExitCode = "+$ExitCode$+" The Setup process was forcefully terminated by the debugger (Run | Terminate was used in the IDE)."
+							isFatalError "Setup failed"
+						else
+							logError "Fatal: Setup program gives an unknown exitcode unequal zero: " + $ExitCode$
+							isFatalError "Unknown exitcode " + $ExitCode$
+						endif
+					endif
+				endif
+			endif
+		endif
+	endif
+endif
