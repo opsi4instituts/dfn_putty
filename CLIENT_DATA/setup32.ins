@@ -4,7 +4,7 @@
 ; credits: http://www.opsi.org/en/credits/
 
 [Actions]
-requiredWinstVersion >= "4.11.3.6"
+requiredWinstVersion >= "4.11.4.4"
 
 DefVar $MsiId$
 DefVar $UninstallProgram$
@@ -13,46 +13,61 @@ DefVar $ProductId$
 DefVar $MinimumSpace$
 DefVar $InstallDir$
 DefVar $ExitCode$
+DefVar $PrettyName$
 
-Set $LogDir$ = "%SystemDrive%\tmp"
+; Set $LogDir$ = "%SystemDrive%\tmp"
+Set $LogDir$ = "%opsiLogDir%"
 
 Set $ProductId$       = "putty"
+Set $PrettyName$      = "PuTTY / KiTTY"
 Set $MinimumSpace$    = "10 MB"
 Set $InstallDir$      = "%ProgramFiles32Dir%\Putty"
 
+DefVar  $SetupFile$
+DefVar	$SetupVersion$
+Set $SetupVersion$	= strPart("%installingProdVersion%", "1", calculate(strPos("%installingProdVersion%","-") + "-" + "1" ))
+Set $SetupFile$		= "putty-" + $SetupVersion$ + "-installer.exe"
+
+ChangeDirectory "%SCRIPTPATH%"
 if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
-	LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
-	isFatalError "No Space"
-	; Stop process and set installation status to failed
+        LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
+        isFatalError "No Space!""
 else
+        comment "Space OK"
+endif
+if not( FileExists($Setupfile$) )
+        LogError "Setupfile NOT exists (" + $Setupfile$ +")"
+        isFatalError "No Setupfile!"
+else
+        comment "Setupfile OK (exists)"
+endif
+
 	comment "Show product picture"
-	ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+	ShowBitmap "%ScriptPath%\%installingProdName%.png" $PrettyName$
+	Message "installing %installingProdName% (%installingProdVersion%) ..."
 	
 	if FileExists("%ScriptPath%\delsub32.ins")
 		comment "Start uninstall sub section"
 		Sub "%ScriptPath%\delsub32.ins"
 	endif
 	
-	Message "Installing " + $ProductId$ + " ..."
-	
+	Message "installing %installingProdName% (%installingProdVersion%) ..."
 	comment "Start setup program"
 	ChangeDirectory "%SCRIPTPATH%"
 	Winbatch_install_putty
+	Sub_check_exitcode
+
 	comment "Patch Registry"
 	Registry_putty /sysnative /AllNTUserDats
-
-	Sub_check_exitcode
 	
 	comment "Copy files"
-	;Files_Copy_kitty
+	Files_Copy_kitty
 		
 	comment "Create shortcuts"
-	;LinkFolder_install
-	
-endif
+	LinkFolder_install
 
 [Winbatch_install_putty]
-"%SCRIPTPATH%\putty-0.64-installer.exe" /sp- /verysilent /norestart /nocancel /SUPPRESSMSGBOXES
+"%SCRIPTPATH%\$SetupFile$" /sp- /verysilent /norestart /nocancel /SUPPRESSMSGBOXES
 
 [Files_Copy_kitty]
 copy -V "%SCRIPTPATH%\kitty.exe" "%Programfiles32Dir%\kitty"

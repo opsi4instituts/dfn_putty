@@ -15,6 +15,7 @@ if FileExists($UninstallProgram$)
 		Files_substitute_putty_exe
 	endif
 	comment "Uninstall program found, starting uninstall"
+	ExecWith_autoit_no_cleanup "%ScriptPath%\autoit3.exe" WINST /letThemGo
 	Winbatch_uninstall
 	sub_check_exitcode
 	; normally we do not want to remove the profile entries (for example while update)
@@ -90,3 +91,92 @@ else
 endif
 
 
+[ExecWith_autoit_no_cleanup]
+If @OSVersion > "WIN_NT4"  Then
+;    BlockInput(1)
+EndIf
+AutoItSetOption("TrayIconDebug", 1)
+
+$windowtitle="PuTTY Uninstallation"
+$var = WinList()
+$logname= "c:\tmp\autoit_putty_au3.log"
+writeLogLine($logname, "Waitfor: Remove saved sessions")
+WriteWinList($logname)
+opsiwinwait($windowtitle, "Remove saved sessions", 300, $logname)
+writeLogLine($logname, "Waitactivate: Remove saved sessions")
+$wait_result=WinActivate ($windowtitle,"Remove saved sessions")
+writeLogLine($logname, "Waitresult: " & $wait_result)
+
+$wait_result=ControlCommand ($windowtitle,"Remove saved sessions", "Button2", "IsEnabled", "" )
+writeLogLine($logname, "IsEnabled: " & $wait_result)
+$wait_result=ControlGetText ($windowtitle,"Remove saved sessions", "Button2" )
+writeLogLine($logname, "Button Text: " & $wait_result)
+opsiControlClick($windowtitle, "Remove saved sessions", "Button2", 120, $logname)
+
+Func WriteWinList($file)
+$var = WinList()
+For $i = 1 to $var[0][0]
+        ; Only display visble windows that have a title
+        If $var[$i][0] <> "" AND IsVisible($var[$i][1]) Then
+                writeLogLine($file, "Title=" & $var[$i][0] & @LF & "Handle=" & $var[$i][1])
+        EndIf
+Next
+EndFunc
+
+Func IsVisible($handle)
+        If BitAnd( WinGetState($handle), 2 ) Then
+                Return 1
+        Else
+                Return 0
+        EndIf
+EndFunc
+
+Func writeLogLine($logname, $text)
+Local $mylog
+$mylog = FileOpen($logname, 1)
+FileWriteLine($mylog, $text )
+sleep(100)
+FileClose($mylog)
+EndFunc
+
+Func opsiwinwait($title, $text, $maxseconds, $logname)
+Local $exists = 0
+Local $seconds = 0
+Local $mylog
+$mylog = FileOpen($logname, 1)
+While ($seconds <= $maxseconds) and ($exists = 0)
+$exists = WinExists($title , $text)
+FileWriteLine($mylog,"win: " & $title & " ; " & $text & " exists result (1=exists): " & $exists )
+$seconds = $seconds + 1
+sleep(1000)
+WEnd
+FileClose($mylog)
+EndFunc
+
+Func opsiControlClick($title, $text, $id, $maxseconds, $logname)
+Local $result = 0
+Local $seconds = 0
+Local $mylog
+$mylog = FileOpen($logname, 1)
+While ($seconds <= $maxseconds) and ($result = 0)
+$result = ControlClick($title , $text,$id)
+FileWriteLine($mylog,"answer for " & $title & " ; " & $text & " id: " & $id & " sended: result (1=success) : " & $result)
+$seconds = $seconds + 1
+sleep(500)
+WEnd
+FileClose($mylog)
+EndFunc
+
+Func opsiControlSetText($title, $text, $id,$sendtext, $maxseconds, $logname)
+Local $result = 0
+Local $seconds = 0
+Local $mylog
+$mylog = FileOpen($logname, 1)
+While ($seconds <= $maxseconds) and ($result = 0)
+$result = ControlSetText ($title , $text,$id, $sendtext)
+FileWriteLine($mylog,"answer for " & $title & " ; " & $text & " id: " & $id & " set: " & $sendtext & "sended: result (1=success) : " & $result)
+$seconds = $seconds + 1
+sleep(500)
+WEnd
+FileClose($mylog)
+EndFunc

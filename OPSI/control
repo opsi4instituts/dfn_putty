@@ -1,52 +1,36 @@
 [Package]
-version: 1
+version: 4
 depends: 
 incremental: False
 
 [Product]
 type: localboot
 id: dfn_putty
-name: Putty
-description: PuTTY is a free implementation of Telnet and SSH for Windows and Unix platforms
-advice: 
-version: 0.64
-priority: -10
+name: dfn_putty
+description: PuTTY in der Version 0.66
+ PuTTY is a free implementation of Telnet and SSH for Windows and Unix platforms
+advice: KiTTY  in Version 0.66.6.1
+version: 0.66
+priority: 0
 licenseRequired: False
 productClasses: 
 setupScript: setup32.ins
 uninstallScript: uninstall32.ins
-updateScript: 
+updateScript: delsub32.ins
 alwaysScript: 
 onceScript: 
 customScript: 
 userLoginScript: 
 
 [Changelog]
-putty (0.64-1) stable; urgency=low
-  * security update to 0.64
-  * removed kitty
- -- b.wolf <b.wolf@uib.de>  04 Mar 2015
+dfn_putty (0.66-4) stable; urgency=low
 
-putty (0.63-1) stable; urgency=low
+Bitte eine kurze Beschreibung erfassen.
 
-  * security update to 0.63
-  * http://www.heise.de/security/meldung/SSH-Client-PuTTY-0-63-stopft-Sicherheitsloecher-1931109.html
-  * fixes in Linfolder for kitty
+ -- Package Maintainer <andreas.nagel@ipht-jena.de>  Mon, 30 Nov 2015 13:01:21 +0000
 
- -- d.oertel <d.oertel@uib.de>  Mon, 12 Aug 2013 14:20:53 +0000
+dfn_putty (1.0-1) stable; urgency=low
 
-putty (0.62-2) stable; urgency=low
+Project created with opsi Package Builder 8.0.0
 
-  * fix in Registry_putty /AllNTUserDats: /sysnative should be used
-  * code cleanup
-
- -- d.oertel <d.oertel@uib.de>  Tue, 29 Jul 2013 14:20:53 +0000
-
-putty (0.62-1) testing; urgency=low
-
-  * Initial package
-
- -- Susanne Ehlers <s.ehlers@uib.de>  Tue, 11 Jun 2013 14:20:53 +0000
-
-
-
+ -- Package Maintainer <andreas.nagel@ipht-jena.de>  Fri, 28 Aug 2015 11:27:05 +0000
