@@ -3,34 +3,22 @@
 ; and published under the Terms of the General Public License.
 ; credits: http://www.opsi.org/en/credits/
 
-Set $UninstallProgram$ = $InstallDir$ + "\unins000.exe"
+DefVar $DisplayName$
 
-Message "Uninstalling " + $ProductId$ + " ..."
-
-if FileExists($UninstallProgram$)
-	; http://wpkg.org/Putty
-	comment "The uninstall program is interactive if there is a real putty exe - so we substitute it"
-	if FileExists($InstallDir$+"\putty.exe")
-		killtask "putty.exe"
-		Files_substitute_putty_exe
+Set $DisplayName$ = GetRegistrystringvalue32("[HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiId$ +"] DisplayName")
+	if not ($DisplayName$ = "")
+		Message "Uninstalling "+$DisplayName$
+		Winbatch_Uninstall
+		sub "%Scriptpath%\checkmsiexitcode.ins"
 	endif
-	comment "Uninstall program found, starting uninstall"
-	ExecWith_autoit_no_cleanup "%ScriptPath%\autoit3.exe" WINST /letThemGo
-	Winbatch_uninstall
-	sub_check_exitcode
-	; normally we do not want to remove the profile entries (for example while update)
-	;Registry_uninstall /sysnative /ALLNTUserDats
-endif
 
-comment "Delete files"
-Files_uninstall /32Bit
-comment "Delete kitty from start menu"
-LinkFolder_uninstall
+;comment "Delete files"
+;Files_uninstall /32Bit
+;comment "Delete kitty from start menu"
+;LinkFolder_uninstall
 
 [Winbatch_uninstall]
-;"$UninstallProgram$" /sp- /silent /norestart /SUPPRESSMSGBOXES /LOADINF="putty_uninstall"
-"$UninstallProgram$" /sp- /silent /norestart /SUPPRESSMSGBOXES
-;"$UninstallProgram$" /sp- /verysilent /norestart
+msiexec /passive /x $MsiId$
 
 [Files_uninstall]
 del -sf "$InstallDir$\"
@@ -39,144 +27,3 @@ del -sf "%Programfiles32Dir%\kitty\"
 [LinkFolder_uninstall]
 set_basefolder common_programs
 delete_subfolder "kitty"
-
-[Files_substitute_putty_exe]
-copy "%ScriptPath%\putty-substitute\putty.exe" "$InstallDir$"
-
-[Registry_uninstall]
-deletekey [HKEY_CURRENT_USER\Software\SimonTatham\PuTTY]
-;deletekey [HKEY_CURRENT_USER\Software\Wow6432Node\SimonTatham\PuTTY]
-; [HKEY_USERS\S-1-5-21-1080301877-4088584547-4076890939-500\Software\wow6432node\SimonTatham\PuTTY]
-; [HKEY_USERS\PatchNTUserdatTempUser\Software\wow6432node\SimonTatham\PuTTY]
-; [HKEY_USERS\.DEFAULT\Software\wow6432node\SimonTatham\PuTTY]
-
-[Sub_check_exitcode]
-comment "Test for installation success via exit code"
-set $ExitCode$ = getLastExitCode
-if ($ExitCode$ = "0")
-	comment "ExitCode = "+$ExitCode$+" Setup was successfully run to completion."
-else
-	if ($ExitCode$ = "1")
-		logError "ExitCode = "+$ExitCode$+" Setup failed to initialize."
-		isFatalError " Setup failed to initialize."
-	else
-		if ($ExitCode$ = "2")
-			logError "ExitCode = "+$ExitCode$+" The user clicked Cancel in the wizard before the actual installation started, or chose 'No' on the opening 'This will install...' message box."
-			isFatalError "user canceled"
-		else
-			if ($ExitCode$ = "3")
-				logError "ExitCode = "+$ExitCode$+" A fatal error occurred while preparing to move to the next installation phase (for example, from displaying the pre-installation wizard pages to the actual installation process). This should never happen except under the most unusual of circumstances, such as running out of memory or Windows resources."
-				isFatalError "Setup failed"
-			else
-				if ($ExitCode$ = "4")
-					logError "ExitCode = "+$ExitCode$+" A fatal error occurred during the actual installation process."
-					isFatalError "Setup failed"
-				else
-					if ($ExitCode$ = "5")
-						logError "ExitCode = "+$ExitCode$+" The user clicked Cancel during the actual installation process, or chose Abort at an Abort-Retry-Ignore box."
-						isFatalError "user canceled"
-					else
-						if ($ExitCode$ = "6")
-							logError "ExitCode = "+$ExitCode$+" The Setup process was forcefully terminated by the debugger (Run | Terminate was used in the IDE)."
-							isFatalError "Setup failed"
-						else
-							logError "Fatal: Setup program gives an unknown exitcode unequal zero: " + $ExitCode$
-							isFatalError "Unknown exitcode " + $ExitCode$
-						endif
-					endif
-				endif
-			endif
-		endif
-	endif
-endif
-
-
-[ExecWith_autoit_no_cleanup]
-If @OSVersion > "WIN_NT4"  Then
-;    BlockInput(1)
-EndIf
-AutoItSetOption("TrayIconDebug", 1)
-
-$windowtitle="PuTTY Uninstallation"
-$var = WinList()
-$logname= "c:\tmp\autoit_putty_au3.log"
-writeLogLine($logname, "Waitfor: Remove saved sessions")
-WriteWinList($logname)
-opsiwinwait($windowtitle, "Remove saved sessions", 300, $logname)
-writeLogLine($logname, "Waitactivate: Remove saved sessions")
-$wait_result=WinActivate ($windowtitle,"Remove saved sessions")
-writeLogLine($logname, "Waitresult: " & $wait_result)
-
-$wait_result=ControlCommand ($windowtitle,"Remove saved sessions", "Button2", "IsEnabled", "" )
-writeLogLine($logname, "IsEnabled: " & $wait_result)
-$wait_result=ControlGetText ($windowtitle,"Remove saved sessions", "Button2" )
-writeLogLine($logname, "Button Text: " & $wait_result)
-opsiControlClick($windowtitle, "Remove saved sessions", "Button2", 120, $logname)
-
-Func WriteWinList($file)
-$var = WinList()
-For $i = 1 to $var[0][0]
-        ; Only display visble windows that have a title
-        If $var[$i][0] <> "" AND IsVisible($var[$i][1]) Then
-                writeLogLine($file, "Title=" & $var[$i][0] & @LF & "Handle=" & $var[$i][1])
-        EndIf
-Next
-EndFunc
-
-Func IsVisible($handle)
-        If BitAnd( WinGetState($handle), 2 ) Then
-                Return 1
-        Else
-                Return 0
-        EndIf
-EndFunc
-
-Func writeLogLine($logname, $text)
-Local $mylog
-$mylog = FileOpen($logname, 1)
-FileWriteLine($mylog, $text )
-sleep(100)
-FileClose($mylog)
-EndFunc
-
-Func opsiwinwait($title, $text, $maxseconds, $logname)
-Local $exists = 0
-Local $seconds = 0
-Local $mylog
-$mylog = FileOpen($logname, 1)
-While ($seconds <= $maxseconds) and ($exists = 0)
-$exists = WinExists($title , $text)
-FileWriteLine($mylog,"win: " & $title & " ; " & $text & " exists result (1=exists): " & $exists )
-$seconds = $seconds + 1
-sleep(1000)
-WEnd
-FileClose($mylog)
-EndFunc
-
-Func opsiControlClick($title, $text, $id, $maxseconds, $logname)
-Local $result = 0
-Local $seconds = 0
-Local $mylog
-$mylog = FileOpen($logname, 1)
-While ($seconds <= $maxseconds) and ($result = 0)
-$result = ControlClick($title , $text,$id)
-FileWriteLine($mylog,"answer for " & $title & " ; " & $text & " id: " & $id & " sended: result (1=success) : " & $result)
-$seconds = $seconds + 1
-sleep(500)
-WEnd
-FileClose($mylog)
-EndFunc
-
-Func opsiControlSetText($title, $text, $id,$sendtext, $maxseconds, $logname)
-Local $result = 0
-Local $seconds = 0
-Local $mylog
-$mylog = FileOpen($logname, 1)
-While ($seconds <= $maxseconds) and ($result = 0)
-$result = ControlSetText ($title , $text,$id, $sendtext)
-FileWriteLine($mylog,"answer for " & $title & " ; " & $text & " id: " & $id & " set: " & $sendtext & "sended: result (1=success) : " & $result)
-$seconds = $seconds + 1
-sleep(500)
-WEnd
-FileClose($mylog)
-EndFunc

@@ -19,14 +19,16 @@ DefVar $PrettyName$
 Set $LogDir$ = "%opsiLogDir%"
 
 Set $ProductId$       = "putty"
-Set $PrettyName$      = "PuTTY / KiTTY"
+Set $PrettyName$      = "PuTTY"
 Set $MinimumSpace$    = "10 MB"
 Set $InstallDir$      = "%ProgramFiles32Dir%\Putty"
+Set $MsiId$			  = "{0B06C05B-0069-4FE8-AC19-AAF6678FD0A8}"
 
 DefVar  $SetupFile$
 DefVar	$SetupVersion$
-Set $SetupVersion$	= strPart("%installingProdVersion%", "1", calculate(strPos("%installingProdVersion%","-") + "-" + "1" ))
-Set $SetupFile$		= "putty-" + $SetupVersion$ + "-installer.exe"
+;Set $SetupVersion$	= strPart("%installingProdVersion%", "1", calculate(strPos("%installingProdVersion%","-") + "-" + "1" ))
+Set $SetupVersion$	= "0.70"
+Set $SetupFile$		= "putty-" + $SetupVersion$ + "-installer.msi"
 
 ChangeDirectory "%SCRIPTPATH%"
 if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
@@ -55,19 +57,19 @@ endif
 	comment "Start setup program"
 	ChangeDirectory "%SCRIPTPATH%"
 	Winbatch_install_putty
-	Sub_check_exitcode
+	sub "%Scriptpath%\checkmsiexitcode.ins"
 
 	comment "Patch Registry"
-	Registry_putty /sysnative /AllNTUserDats
+	;Registry_putty /sysnative /AllNTUserDats
 	
 	comment "Copy files"
-	Files_Copy_kitty
+	;Files_Copy_kitty
 		
 	comment "Create shortcuts"
-	LinkFolder_install
+	;LinkFolder_install
 
 [Winbatch_install_putty]
-"%SCRIPTPATH%\$SetupFile$" /sp- /verysilent /norestart /nocancel /SUPPRESSMSGBOXES
+msiexec /passive /norestart /i "%SCRIPTPATH%\$SetupFile$" /l* "$LogDir$\$MsiFile$.install_log.txt"
 
 [Files_Copy_kitty]
 copy -V "%SCRIPTPATH%\kitty.exe" "%Programfiles32Dir%\kitty"
@@ -90,43 +92,3 @@ end_link
 openkey [HKCU\Software\SimonTatham\PuTTY\Sessions\Default%20Settings]
 set "LineCodePage"="UTF-8"
 set "UTF8Override"=REG_DWORD:0001
-
-[Sub_check_exitcode]
-comment "Check exit code"
-set $ExitCode$ = getLastExitCode
-if ($ExitCode$ = "0")
-	comment "ExitCode = "+$ExitCode$+" Setup was successfully run to completion."
-else
-	if ($ExitCode$ = "1")
-		logError "ExitCode = "+$ExitCode$+" Setup failed to initialize."
-		isFatalError " Setup failed to initialize."
-	else
-		if ($ExitCode$ = "2")
-			logError "ExitCode = "+$ExitCode$+" The user clicked Cancel in the wizard before the actual installation started, or chose 'No' on the opening 'This will install...' message box."
-			isFatalError "user canceled"
-		else
-			if ($ExitCode$ = "3")
-				logError "ExitCode = "+$ExitCode$+" A fatal error occurred while preparing to move to the next installation phase (for example, from displaying the pre-installation wizard pages to the actual installation process). This should never happen except under the most unusual of circumstances, such as running out of memory or Windows resources."
-				isFatalError "Setup failed"
-			else
-				if ($ExitCode$ = "4")
-					logError "ExitCode = "+$ExitCode$+" A fatal error occurred during the actual installation process."
-					isFatalError "Setup failed"
-				else
-					if ($ExitCode$ = "5")
-						logError "ExitCode = "+$ExitCode$+" The user clicked Cancel during the actual installation process, or chose Abort at an Abort-Retry-Ignore box."
-						isFatalError "user canceled"
-					else
-						if ($ExitCode$ = "6")
-							logError "ExitCode = "+$ExitCode$+" The Setup process was forcefully terminated by the debugger (Run | Terminate was used in the IDE)."
-							isFatalError "Setup failed"
-						else
-							logError "Fatal: Setup program gives an unknown exitcode unequal zero: " + $ExitCode$
-							isFatalError "Unknown exitcode " + $ExitCode$
-						endif
-					endif
-				endif
-			endif
-		endif
-	endif
-endif
