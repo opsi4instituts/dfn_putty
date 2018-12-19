@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 
 [Product]
@@ -21,6 +21,12 @@ customScript:
 userLoginScript: 
 
 [Changelog]
+dfn_putty (0.70-2) stable; urgency=low
+
+Deinstallationsroutine für vorherige Paketversion 0.67 wieder eingebaut
+
+ -- Michael Decker <m.decker@fz-juelich.de>  Tue, 19 Dec 2018 10:00:00 +0100
+
 dfn_putty (0.70-1) stable; urgency=low
 
 Update auf Version 0.70
