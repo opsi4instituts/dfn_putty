@@ -16,10 +16,8 @@ Set $DisplayName$ = GetRegistrystringvalue32("[HKLM\SOFTWARE\Microsoft\Windows\C
 		Winbatch_Uninstall_msi
 		sub "%Scriptpath%\checkmsiexitcode.ins"
 		
-		if $DesktopLink$ = "True"
-			comment "Delete common desktop link"
-			Linkfolder_delete_desktoplink	
-		endif
+		comment "Delete common desktop link"
+		Linkfolder_delete_desktoplink
 	endif
 
 ; Putty Vorversionen (EXE-Installer)
@@ -39,10 +37,8 @@ if FileExists($UninstallProgram$)
 	comment "Delete kitty from start menu"
 	LinkFolder_uninstall
 	
-	if $DesktopLink$ = "True"
-		comment "Delete common desktop link"
-		Linkfolder_delete_desktoplink	
-	endif
+	comment "Delete common desktop link"
+	Linkfolder_delete_desktoplink
 endif
 
 
