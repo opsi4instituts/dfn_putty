@@ -27,8 +27,8 @@ ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
 
 Message "Uninstalling " + $ProductId$ + " ..."
 
-if FileExists("%ScriptPath%\delsub32.ins")
+if FileExists("%ScriptPath%\delsub32.opsiscript")
 	comment "Start uninstall sub section"
-	Sub "%ScriptPath%\delsub32.ins"
+	Sub "%ScriptPath%\delsub32.opsiscript"
 endif
 

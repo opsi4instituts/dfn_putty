@@ -48,7 +48,7 @@ endif
 	
 	if FileExists("%ScriptPath%\delsub32.ins")
 		comment "Start uninstall sub section"
-		Sub "%ScriptPath%\delsub32.ins"
+		Sub "%ScriptPath%\delsub32.opsiscript"
 	endif
 	
 	Message "installing %installingProdName% (%installingProdVersion%) ..."

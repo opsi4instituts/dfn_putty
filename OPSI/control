@@ -1,19 +1,19 @@
 [Package]
-version: 2
+version: 3
 depends: 
 
 [Product]
 type: localboot
 id: dfn_putty
 name: dfn_putty
-description: PuTTY is a free implementation of Telnet and SSH for Windows and Unix platforms
-advice: switch to KiTTY if possible
+description: Werkzeug für (sichere) Terminalverbindungen (insbesondere SSH) [Terminal emulator for (secure) connections (especially SSH)]
+advice: 
 version: 0.70
 priority: 0
 licenseRequired: False
 productClasses: 
-setupScript: setup32.ins
-uninstallScript: uninstall32.ins
+setupScript: setup32.opsiscript
+uninstallScript: uninstall32.opsiscript
 updateScript: 
 alwaysScript: 
 onceScript: 
