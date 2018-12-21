@@ -45,5 +45,5 @@ if (FileExists("%ScriptPath%\..\lib\icons\%installingProdName%.png"))
        ShowBitmap "%ScriptPath%\..\lib\icons\%installingProdName%.png" $ProductName$
 else
        comment "no logo at local library/icons, use from ScriptPath ..."
-       ShowBitmap "%ScriptPath%\$ProductId$.png" $ProductName$
+       ShowBitmap "%ScriptPath%\"+ $ProductId$ + ".png" $ProductName$
 endif
