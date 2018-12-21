@@ -20,6 +20,12 @@ onceScript:
 customScript: 
 userLoginScript: 
 
+[ProductProperty]
+type: bool
+name: desktop-link
+description: Link on Desktop?
+default: False
+
 [Changelog]
 dfn_putty (0.70-2) stable; urgency=low
 

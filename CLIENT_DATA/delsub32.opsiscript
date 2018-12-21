@@ -15,6 +15,11 @@ Set $DisplayName$ = GetRegistrystringvalue32("[HKLM\SOFTWARE\Microsoft\Windows\C
 		Message "Uninstalling "+$DisplayName$
 		Winbatch_Uninstall_msi
 		sub "%Scriptpath%\checkmsiexitcode.ins"
+		
+		if $DesktopLink$ = "True"
+			comment "Delete common desktop link"
+			Linkfolder_delete_desktoplink	
+		endif
 	endif
 
 ; Putty Vorversionen (EXE-Installer)
@@ -33,7 +38,13 @@ if FileExists($UninstallProgram$)
 	Files_uninstall /32Bit
 	comment "Delete kitty from start menu"
 	LinkFolder_uninstall
+	
+	if $DesktopLink$ = "True"
+		comment "Delete common desktop link"
+		Linkfolder_delete_desktoplink	
+	endif
 endif
+
 
 [Winbatch_uninstall]
 "$UninstallProgram$" /sp- /silent /norestart /SUPPRESSMSGBOXES
@@ -48,6 +59,11 @@ del -sf "%Programfiles32Dir%\kitty\"
 [LinkFolder_uninstall]
 set_basefolder common_programs
 delete_subfolder "kitty"
+
+[Linkfolder_delete_desktoplink]
+set_basefolder common_desktopdirectory
+set_subfolder ""
+delete_element $ProductName$
 
 [Files_substitute_putty_exe]
 copy "%ScriptPath%\putty-substitute\putty.exe" "$InstallDir$"

@@ -1,0 +1,49 @@
+requiredWinstVersion >= "4.12.0.16"
+
+DefVar $UninstallProgram$
+DefVar $LogDir$
+DefVar $ProductId$  
+DefVar $MinimumSpace$
+DefVar $InstallDir$
+DefVar $ExitCode$
+DefVar $ProductName$
+DefVar $SetupFile$
+DefVar $CustomPostInstall$
+DefVar $CustomPostDeinstall$
+DefVar $DesktopLink$
+DefVar $PathToExe$
+DefVar $ProductVersion$
+DefVar $MSVersion$
+DefVar $SearchPattern$
+DefVar $RegId$
+DefVar $RegBitScope$
+DefVar $RegPathUninstall$
+DefVar $UnInstallDir$
+DefStringlist $ResultList$
+
+Set $LogDir$ = "%opsiLogDir%"
+
+Set $DesktopLink$ = getProductProperty("desktop-link","False")
+
+; ----------------------------------------------------------------
+Set $ProductId$       = "putty"
+Set $ProductName$      = "PuTTY"
+Set $MinimumSpace$    = "10 MB"
+Set $InstallDir$	= "%ProgramFiles32Dir%\" + $ProductId$
+Set $PathToExe$  = $InstallDir$ + "\putty.exe"
+Set $ProductVersion$ 	= "%installingProdVersion%"
+Set $SetupFile$		= "putty-" + $ProductVersion$ + "-installer.msi"
+Set $RegPathUninstall$  = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+; ----------------------------------------------------------------
+
+; Library registry search uninstall keys (local functions)
+importLib "func_search_registry_uninstall_keys.opsiinc"
+
+comment "Show product picture"
+if (FileExists("%ScriptPath%\..\lib\icons\%installingProdName%.png"))
+       comment "logo at local library/icons found."
+       ShowBitmap "%ScriptPath%\..\lib\icons\%installingProdName%.png" $ProductName$
+else
+       comment "no logo at local library/icons, use from ScriptPath ..."
+       ShowBitmap "%ScriptPath%\$ProductId$.png" $ProductName$
+endif

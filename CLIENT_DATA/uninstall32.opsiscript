@@ -1,29 +1,6 @@
-; Copyright (c) uib gmbh (www.uib.de)
-; This sourcecode is owned by uib gmbh
-; and published under the Terms of the General Public License.
-; credits: http://www.opsi.org/en/credits/
-
 [Actions]
-requiredWinstVersion >= "4.11.3.6"
 
-DefVar $UninstallProgram$
-DefVar $LogDir$
-DefVar $ExitCode$
-DefVar $ProductId$
-DefVar $InstallDir$
-
-Set $LogDir$ = "%SystemDrive%\tmp"
-
-; ----------------------------------------------------------------
-; - Please edit the following values                             -
-; ----------------------------------------------------------------
-Set $ProductId$       = "putty"
-Set $InstallDir$      = "%ProgramFiles32Dir%\Putty"
-; ----------------------------------------------------------------
-
-
-comment "Show product picture"
-ShowBitmap "%ScriptPath%\" + $ProductId$ + ".png" $ProductId$
+include_insert "common.opsiinc"
 
 Message "Uninstalling " + $ProductId$ + " ..."
 
@@ -31,4 +8,3 @@ if FileExists("%ScriptPath%\delsub32.opsiscript")
 	comment "Start uninstall sub section"
 	Sub "%ScriptPath%\delsub32.opsiscript"
 endif
-

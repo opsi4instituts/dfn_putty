@@ -1,92 +1,45 @@
-; Copyright (c) uib gmbh (www.uib.de)
-; This sourcecode is owned by uib
-; and published under the Terms of the General Public License.
-; credits: http://www.opsi.org/en/credits/
-
 [Actions]
-requiredWinstVersion >= "4.11.4.4"
 
-DefVar $UninstallProgram$
-DefVar $LogDir$
-DefVar $ProductId$  
-DefVar $MinimumSpace$
-DefVar $InstallDir$
-DefVar $ExitCode$
-DefVar $PrettyName$
+include_insert "common.opsiinc"
 
-; Set $LogDir$ = "%SystemDrive%\tmp"
-Set $LogDir$ = "%opsiLogDir%"
-
-Set $ProductId$       = "putty"
-Set $PrettyName$      = "PuTTY"
-Set $MinimumSpace$    = "10 MB"
-Set $InstallDir$      = "%ProgramFiles32Dir%\Putty"
-
-DefVar  $SetupFile$
-DefVar	$SetupVersion$
-;Set $SetupVersion$	= strPart("%installingProdVersion%", "1", calculate(strPos("%installingProdVersion%","-") + "-" + "1" ))
-Set $SetupVersion$	= "0.70"
-Set $SetupFile$		= "putty-" + $SetupVersion$ + "-installer.msi"
-
-ChangeDirectory "%SCRIPTPATH%"
 if not(HasMinimumSpace ("%SystemDrive%", $MinimumSpace$))
         LogError "Not enough space on %SystemDrive%, " + $MinimumSpace$ + " on drive %SystemDrive% needed for " + $ProductId$
         isFatalError "No Space!""
 else
         comment "Space OK"
 endif
-if not( FileExists($Setupfile$) )
-        LogError "Setupfile NOT exists (" + $Setupfile$ +")"
+
+if not( FileExists("%scriptpath%\" + $Setupfile$) )
+        LogError "Setupfile NOT found (" + $Setupfile$ +")"
         isFatalError "No Setupfile!"
 else
         comment "Setupfile OK (exists)"
 endif
+	
+if FileExists("%ScriptPath%\delsub32.ins")
+	comment "Start uninstall sub section"
+	Sub "%ScriptPath%\delsub32.opsiscript"
+endif
+	
+Message "installing %installingProdName% (%installingProdVersion%) ..."
+comment "Start setup program"
+Winbatch_install_putty
+sub "%Scriptpath%\checkmsiexitcode.ins"
 
-	comment "Show product picture"
-	ShowBitmap "%ScriptPath%\%installingProdName%.png" $PrettyName$
-	Message "installing %installingProdName% (%installingProdVersion%) ..."
-	
-	if FileExists("%ScriptPath%\delsub32.ins")
-		comment "Start uninstall sub section"
-		Sub "%ScriptPath%\delsub32.opsiscript"
-	endif
-	
-	Message "installing %installingProdName% (%installingProdVersion%) ..."
-	comment "Start setup program"
-	ChangeDirectory "%SCRIPTPATH%"
-	Winbatch_install_putty
-	sub "%Scriptpath%\checkmsiexitcode.ins"
+if $DesktopLink$ = "True"
+		comment "Create common desktop link"
+		Linkfolder_create_desktoplink
+endif
 
-	comment "Patch Registry"
-	;Registry_putty /sysnative /AllNTUserDats
-	
-	comment "Copy files"
-	;Files_Copy_kitty
-		
-	comment "Create shortcuts"
-	;LinkFolder_install
 
 [Winbatch_install_putty]
 msiexec /passive /norestart /i "%SCRIPTPATH%\$SetupFile$" /l* "$LogDir$\$MsiFile$.install_log.txt"
 
-[Files_Copy_kitty]
-copy -V "%SCRIPTPATH%\kitty.exe" "%Programfiles32Dir%\kitty"
+[Linkfolder_create_desktoplink]
+set_basefolder common_desktopdirectory
+set_subfolder ""
 
-[LinkFolder_install]
-set_basefolder common_programs
-set_subfolder "kitty"
 set_link
-  name: "kitty"
-  target: "%Programfiles32Dir%\kitty\kitty.exe"
+	name: $ProductName$
+	target: $PathToExe$
 end_link
-
-
-[Registry_putty]
-;http://www.chiark.greenend.org.uk/~sgtatham/putty/faq.html
-;Chapter 4: Configuring PuTTY
-;http://the.earth.li/~sgtatham/putty/0.58/htmldoc/Chapter4.html
-;HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\Default%20Settings
-
-openkey [HKCU\Software\SimonTatham\PuTTY\Sessions\Default%20Settings]
-set "LineCodePage"="UTF-8"
-set "UTF8Override"=REG_DWORD:0001
