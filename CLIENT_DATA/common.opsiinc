@@ -31,7 +31,7 @@ Set $ProductName$      = "PuTTY"
 Set $MinimumSpace$    = "10 MB"
 Set $InstallDir$	= "%ProgramFiles32Dir%\" + $ProductId$
 Set $PathToExe$  = $InstallDir$ + "\putty.exe"
-Set $ProductVersion$ 	= "%installingProdVersion%"
+Set $ProductVersion$ 	= strPart("%installingProdVersion%", "1", calculate(strPos("%installingProdVersion%","-") + "-" + "1" ))
 Set $SetupFile$		= "putty-" + $ProductVersion$ + "-installer.msi"
 Set $RegPathUninstall$  = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 ; ----------------------------------------------------------------
