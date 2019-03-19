@@ -3,24 +3,12 @@
 ; and published under the Terms of the General Public License.
 ; credits: http://www.opsi.org/en/credits/
 
-DefVar $DisplayName$
-DefVar $MsiId$
-
 Set $UninstallProgram$ = $InstallDir$ + "\unins000.exe"
 
-; Putty 0.70 (MSI-Paket)
-Set $MsiId$			  = "{0B06C05B-0069-4FE8-AC19-AAF6678FD0A8}"
-Set $DisplayName$ = GetRegistrystringvalue32("[HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $MsiId$ +"] DisplayName")
-	if not ($DisplayName$ = "")
-		Message "Uninstalling "+$DisplayName$
-		Winbatch_Uninstall_msi
-		sub "%Scriptpath%\checkmsiexitcode.ins"
-		
-		comment "Delete common desktop link"
-		Linkfolder_delete_desktoplink
-	endif
-
-; Putty Vorversionen (EXE-Installer)
+; Putty MSI-Pakete
+For %ID% in $msidList$ do Sub_prepare_msi_uninstall	
+	
+; Putty Vorversionen (EXE-Installer) -- legacy
 if FileExists($UninstallProgram$)
 	; http://wpkg.org/Putty
 	comment "The uninstall program is interactive if there is a real putty exe - so we substitute it"
@@ -39,14 +27,41 @@ if FileExists($UninstallProgram$)
 	
 	comment "Delete common desktop link"
 	Linkfolder_delete_desktoplink
+	
+	set $UninstalledSomething$ = "1"
 endif
 
+if $UninstalledSomething$ = "1"
+	comment "include custom post install file"
+	set $CustomPostUninstall$ = getProductProperty("custom-post-deinstall","none")
+	if not ($CustomPostUninstall$ = "none")
+		if FileExists("%ScriptPath%\custom\" + $CustomPostUninstall$)
+			include_insert "%ScriptPath%\custom\" + $CustomPostUninstall$
+		endif
+	endif
+endif
+
+[Sub_prepare_msi_uninstall]
+; Falls geprüfte Version installiert, Deinstallation einleiten
+set $TmpRegistryKey$ = "%ID%"
+set $DisplayName$ = GetRegistrystringvalue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" + $TmpRegistryKey$ +"] DisplayName")
+	if not ($DisplayName$ = "")
+		comment "Key " + $TmpRegistryKey$ + " gefunden. Starte Deinstallation"
+		
+		Winbatch_uninstall_msi
+		sub "%Scriptpath%\checkmsiexitcode.ins"
+		
+		comment "Delete common desktop link"
+		Linkfolder_delete_desktoplink
+		
+		set $UninstalledSomething$ = "1"
+	endif
 
 [Winbatch_uninstall]
 "$UninstallProgram$" /sp- /silent /norestart /SUPPRESSMSGBOXES
 
 [Winbatch_uninstall_msi]
-msiexec /passive /x $MsiId$
+msiexec /passive /x $TmpRegistryKey$ /l* "$LogDir$\putty.uninstall_log.txt"
 
 [Files_uninstall]
 del -sf "$InstallDir$\"

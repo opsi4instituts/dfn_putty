@@ -9,7 +9,7 @@ DefVar $ExitCode$
 DefVar $ProductName$
 DefVar $SetupFile$
 DefVar $CustomPostInstall$
-DefVar $CustomPostDeinstall$
+DefVar $CustomPostUninstall$
 DefVar $DesktopLink$
 DefVar $PathToExe$
 DefVar $ProductVersion$
@@ -19,7 +19,11 @@ DefVar $RegId$
 DefVar $RegBitScope$
 DefVar $RegPathUninstall$
 DefVar $UnInstallDir$
+DefVar $TmpRegistryKey$
+DefVar $DisplayName$
+DefVar $UninstalledSomething$
 DefStringlist $ResultList$
+DefStringList $msidList$
 
 Set $LogDir$ = "%opsiLogDir%"
 
@@ -36,8 +40,7 @@ Set $SetupFile$		= "putty-" + $ProductVersion$ + "-installer.msi"
 Set $RegPathUninstall$  = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 ; ----------------------------------------------------------------
 
-; Library registry search uninstall keys (local functions)
-importLib "func_search_registry_uninstall_keys.opsiinc"
+Set $msidList$       = loadTextFile ("%ScriptPath%\msid_history.txt")
 
 comment "Show product picture"
 if (FileExists("%ScriptPath%\..\lib\icons\%installingProdName%.png"))

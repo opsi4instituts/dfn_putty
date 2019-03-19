@@ -31,6 +31,13 @@ if $DesktopLink$ = "True"
 		Linkfolder_create_desktoplink
 endif
 
+comment "include custom post install file"
+set $CustomPostInstall$ = getProductProperty("custom-post-install","none")
+if not ($CustomPostInstall$ = "none")
+	if FileExists("%ScriptPath%\custom\" + $CustomPostInstall$)
+		include_insert "%ScriptPath%\custom\" + $CustomPostInstall$	
+	endif
+endif
 
 [Winbatch_install_putty]
 msiexec /passive /norestart /i "%SCRIPTPATH%\$SetupFile$" /l* "$LogDir$\$MsiFile$.install_log.txt"

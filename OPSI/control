@@ -1,5 +1,5 @@
 [Package]
-version: 3
+version: 2
 depends: 
 
 [Product]
@@ -8,7 +8,7 @@ id: dfn_putty
 name: dfn_putty
 description: Werkzeug für (sichere) Terminalverbindungen (insbesondere SSH) [Terminal emulator for (secure) connections (especially SSH)]
 advice: 
-version: 0.70
+version: 0.71
 priority: 0
 licenseRequired: False
 productClasses: 
@@ -26,7 +26,39 @@ name: desktop-link
 description: Link on Desktop?
 default: False
 
+[ProductProperty]
+type: unicode
+name: custom-post-install
+multivalue: False
+editable: False
+description: Define filename for include script in custom directory after
+ installation
+values: ["none", "post-install.opsiinc"]
+default: ["none"]
+
+[ProductProperty]
+type: unicode
+name: custom-post-deinstall
+multivalue: False
+editable: False
+description: Define filename for include script in custom directory after
+ deinstallation
+values: ["none", "post-deinstall.opsiinc"]
+default: ["none"]
+
 [Changelog]
+dfn_putty (0.71-2) stable; urgency=low
+
+Debug-Versionsberechnung entfernt
+ -- Michael Decker <m.decker@fz-juelich.de>  Tue, 19 Mar 2019
+
+dfn_putty (0.71-1) stable; urgency=high
+
+Update auf Version 0.71
+neue Properties: desktop-link, custom-post-install, custom-post-deinstall
+
+ -- Michael Decker <m.decker@fz-juelich.de>  Tue, 19 Mar 2019
+
 dfn_putty (0.70-2) stable; urgency=low
 
 Deinstallationsroutine für vorherige Paketversion 0.67 wieder eingebaut
